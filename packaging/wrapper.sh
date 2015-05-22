@@ -4,4 +4,7 @@ set -e
 SELFDIR="`dirname \"$0\"`"
 SELFDIR="`cd \"$SELFDIR\" && pwd`"
 
-exec "$SELFDIR/lib/ruby/bin/ruby" "$SELFDIR/lib/app/main.rb"
+export BUNDLE_GEMFILE="$SELFDIR/lib/vendor/Gemfile"
+unset BUNDLE_IGNORE_CONFIG
+
+exec "$SELFDIR/lib/ruby/bin/ruby" -rbundler/setup "$SELFDIR/lib/app/main.rb" "$@"

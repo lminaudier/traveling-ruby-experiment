@@ -1,3 +1,6 @@
 #!/usr/bin/env ruby
 
-puts "Preview"
+require "liquid"
+
+@template = Liquid::Template.parse("hi {{name}}") # Parses and compiles the template
+puts @template.render('name' => ARGV.join(","))
