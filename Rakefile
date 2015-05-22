@@ -27,7 +27,7 @@ namespace :package do
 
   desc "Package your app for Windows"
   task :win32 => [:vendoring, "tmp/traveling-ruby-#{TRAVELING_RUBY_VERSION}-win32.tar.gz"] do
-    create_package("win32")
+    create_package("win32", os_type: :windows)
   end
 
   desc "Vendoring gems"
@@ -62,7 +62,7 @@ file "tmp/traveling-ruby-#{TRAVELING_RUBY_VERSION}-win32.tar.gz" do
   download_runtime("win32")
 end
 
-def create_package(target)
+def create_package(target, os_type: :unix)
   sh "mkdir -p pkg"
   package_full_name = "#{PACKAGE_NAME}-#{VERSION}-#{target}"
   package_dir = "pkg/#{package_full_name}"
@@ -71,7 +71,12 @@ def create_package(target)
   sh "cp -R app #{package_dir}/lib/"
   sh "mkdir #{package_dir}/lib/ruby"
   sh "tar -xzf tmp/traveling-ruby-#{TRAVELING_RUBY_VERSION}-#{target}.tar.gz -C #{package_dir}/lib/ruby"
-  sh "cp packaging/wrapper.sh #{package_dir}/#{PACKAGE_NAME}"
+
+  if os_type == :unix
+    sh "cp packaging/wrapper.sh #{package_dir}/#{PACKAGE_NAME}"
+  else
+    sh "cp packaging/wrapper.bat #{package_dir}/#{PACKAGE_NAME}.bat"
+  end
 
   sh "cp -pR tmp/vendor #{package_dir}/lib/"
   sh "cp app/Gemfile app/Gemfile.lock #{package_dir}/lib/vendor/"
@@ -79,7 +84,11 @@ def create_package(target)
   sh "cp packaging/bundler-config #{package_dir}/lib/vendor/.bundle/config"
 
   if !ENV['DIR_ONLY']
-    sh "cd pkg && tar -czf #{package_full_name}.tar.gz #{package_full_name}"
+    if os_type == :unix
+      sh "cd pkg && tar -czf #{package_full_name}.tar.gz #{package_full_name}"
+    else
+      sh "cd pkg && zip -9r --quiet #{package_full_name}.zip #{package_full_name}"
+    end
     sh "rm -rf #{package_dir}"
   end
 end
